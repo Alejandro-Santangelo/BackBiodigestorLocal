@@ -48,6 +48,7 @@ Migracion: (para que cree la Base de Datos)
      1°  dotnet ef migrations add Initial
 
      2°  dotnet ef database update
+     3°  dotnet run para ejecutar el proyecto 
  
 
      
