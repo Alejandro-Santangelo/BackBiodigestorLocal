@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Inicio</title>
+    <link rel="stylesheet" type="text/css" href="estilos.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            margin-top: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            margin: 20px;
+            width: 300px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            padding: 5px;
+            margin-top: 5px;
+            width: 100%;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 15px;
+            width: 100%;
+        }
+        .form-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>¡Bienvenido a la aplicación BiodigestorTop3!</h1>
+
+    <div class="form-row">
+        <!-- Formulario de verificación de DNI -->
+        <div class="form-container">
+            <h2>Verificación para Registro</h2>
+            <form id="verificacionForm" onsubmit="return false;">
+                <label for="dni">Ingrese su número de DNI:</label>
+                <input type="text" id="dni" name="dni" required>
+                <button type="button" onclick="verificarDNI()">Verificar</button>
+            </form>
+            <p id="verificacionMessage"></p>
+        </div>
+
+        <div class="form-container" id="registerFormContainer" style="display:none;">
+            <h2>Registro</h2>
+            <form id="registerForm">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+        
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+        
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+        
+                <label for="dniNumber">DNI</label>
+                <input type="number" id="dniNumber" name="dni" required>
+        
+                <button type="submit">Registrarse</button>
+                <div id="registerMessage"></div>
+            </form>
+        </div>
+        
+        <script>
+            let dniVerificado = null; // Variable para almacenar el DNI verificado
+
+            document.getElementById('registerForm').addEventListener('submit', async function(event) {
+                event.preventDefault(); // Evita que el formulario se envíe de manera tradicional
+        
+                // Obtener los valores de los campos del formulario
+                const username = document.getElementById('username').value;
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const dni = document.getElementById('dniNumber').value;
+        
+                // Validar que el DNI ingresado en el registro coincida con el verificado
+                if (dni !== dniVerificado) {
+                    document.getElementById('registerMessage').innerHTML = `<span style="color:red;">El DNI no coincide con la verificación.</span>`;
+                    return;
+                }
+        
+                // Crear un objeto con los datos del formulario
+                const data = {
+                    Username: username,
+                    Email: email,
+                    Password: password,
+                    DNI: dni
+                };
+        
+                try {
+                    // Enviar la solicitud POST al endpoint /Auth/register
+                    const response = await fetch('/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+        
+                    // Verificar la respuesta
+                    const result = await response.json();
+                    const messageContainer = document.getElementById('registerMessage');
+        
+                    if (response.ok) {
+                        messageContainer.innerHTML = `<span style="color:green;">${result.message}</span>`;
+                    } else {
+                        messageContainer.innerHTML = `<span style="color:red;">${result.message}</span>`;
+                    }
+                } catch (error) {
+                    // Manejo de errores
+                    document.getElementById('registerMessage').innerHTML = `<span style="color:red;">Error en el registro.</span>`;
+                }
+            });
+        </script>
+
+        <!-- Formulario de login -->
+        <div class="form-container">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" name="username" required>
+                
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" name="password" required>
+                
+                <button type="submit">Iniciar Sesión</button>
+            </form>
+        </div>
+    </div>
+
+    <p>Dirigir a <a href="http://localhost:5068/swagger" target="_blank">Swagger UI</a></p>
+    <p>Servidor funcionando correctamente.</p>
+
+    <script>
+        async function verificarDNI() {
+            const dni = document.getElementById('dni').value;
+            const verificacionMessage = document.getElementById('verificacionMessage');
+
+            if (!dni || isNaN(dni) || dni <= 0) {
+                verificacionMessage.textContent = 'Por favor, ingrese un DNI válido.';
+                verificacionMessage.style.color = 'red';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/verificacion/verificar-dni/${dni}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    verificacionMessage.textContent = 'Error: ' + errorText;
+                    verificacionMessage.style.color = 'red';
+                    document.getElementById('registerFormContainer').style.display = 'none';
+                    return;
+                }
+
+                const data = await response.json();
+
+                verificacionMessage.textContent = data.mensaje;
+                verificacionMessage.style.color = data.existe ? 'green' : 'red';
+                document.getElementById('registerFormContainer').style.display = data.existe ? 'block' : 'none';
+
+                // Almacenar el DNI verificado
+                if (data.existe) {
+                    dniVerificado = dni; // Guardar el DNI para la comparación en el registro
+                }
+
+            } catch (error) {
+                verificacionMessage.textContent = 'Error en la solicitud: ' + error.message;
+                verificacionMessage.style.color = 'red';
+                document.getElementById('registerFormContainer').style.display = 'none';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const loginData = {
+                username,
+                password
+            };
+            
+            try {
+                const response = await fetch('http://localhost:5068/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+                
+                if (response.ok) {
+                    alert('Inicio de sesión exitoso');
+                    document.getElementById('loginForm').reset();
+                    window.location.href = 'http://localhost:5068/swagger';
+                } else {
+                    alert('Nombre de usuario o contraseña no válidos');
+                }
+            } catch (error) {
+                console.error('Error en la solicitud:', error);
+            }
+        });
+    </script>
+</body>
+</html>

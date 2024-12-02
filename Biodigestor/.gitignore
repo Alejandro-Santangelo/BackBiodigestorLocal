@@ -1,0 +1,30 @@
+# Ignorar carpetas de compilación
+bin/
+obj/
+
+# Ignorar archivos de configuración de usuario de Visual Studio
+*.suo
+*.user
+*.userprefs
+*.vs/
+
+# Ignorar archivos de configuración de Rider
+.idea/
+
+# Ignorar archivos generados
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+
+# Ignorar otros archivos innecesarios
+*.db
+# Ignorar archivos generados
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+
+.fake
