@@ -18,5 +18,10 @@ namespace Biodigestor.Models
 
         [JsonIgnore]
         public string? Rol { get; set; }
+
+        public byte[]? FotoPerfil { get; set; }
+
+        [MaxLength(100)]
+        public string? TipoContenidoFoto { get; set; }
     }
 }
