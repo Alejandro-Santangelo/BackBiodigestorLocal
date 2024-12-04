@@ -10,8 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
-[Authorize(Roles = "Administracion , Manager")]
+[Authorize(Roles = "Administracion , Manager, ")]
 [Route("UsuarioAdministrador/[controller]")]
 [ApiController]
 public class ClienteController : ControllerBase
@@ -39,8 +38,12 @@ public class ClienteController : ControllerBase
         {
             // Retornar un conflicto si el DNI ya está registrado
             return Conflict(new { message = "Ya existe un cliente con ese DNI." });
-        }
 
+        }
+         if (!IsValidDni(cliente.DNI))
+        {
+            return BadRequest(new { message = "DNI no válido." });
+        }
         // Agregar el nuevo cliente si no existe un cliente con el mismo DNI
         _context.Clientes.Add(cliente);
         await _context.SaveChangesAsync();
@@ -48,6 +51,16 @@ public class ClienteController : ControllerBase
         return CreatedAtAction(nameof(GetClienteByDni), new { dni = cliente.DNI }, cliente);
     }
 
+    private bool IsValidDni(int dNI)
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool IsValidDni(string dni)
+    {
+    // Implement your DNI validation logic (e.g., regex for valid format)
+        return true;
+    }
     // GET: api/Clientes/dni
     
 [HttpGet("dni")]

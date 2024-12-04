@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Biodigestor.Controllers
 {
-    [Authorize(Roles = "Manager, Tecnico")]
+    [Authorize(Roles = "Manager, Tecnico,")]
     [Route("api/[controller]")]
     [ApiController]
     public class RegistrosController : ControllerBase
