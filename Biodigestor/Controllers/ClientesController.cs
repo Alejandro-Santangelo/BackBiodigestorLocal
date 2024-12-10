@@ -50,24 +50,14 @@ public class ClienteController : ControllerBase
 
     // GET: api/Clientes/dni
     
-[HttpGet("dni")]
-public async Task<ActionResult<ClienteDto>> GetClienteDatosTotales()
+[HttpGet("{dni}/datos-totales")]
+public async Task<ActionResult<ClienteDto>> GetClienteDatosTotalesByDni(int dni)
 {
-    
-    // Obtener el DNI del cliente autenticado desde las claims
-    var dniClaim = User.FindFirst("DNI")?.Value;
-
-    // Verificar que el claim DNI exista y sea válido
-    if (dniClaim == null || !int.TryParse(dniClaim, out int dniAutenticado))
-    {
-        return BadRequest(new { message = "DNI no válido o no autenticado." });
-    }
-
-    // Buscar los datos del cliente autenticado
+    // Buscar los datos del cliente por DNI
     var cliente = await _context.Clientes
         .Include(c => c.Domicilios)
         .Include(c => c.Facturas)
-        .FirstOrDefaultAsync(c => c.DNI == dniAutenticado);
+        .FirstOrDefaultAsync(c => c.DNI == dni);
 
     // Verificar si el cliente existe
     if (cliente == null)
