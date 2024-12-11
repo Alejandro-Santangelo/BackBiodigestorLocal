@@ -24,10 +24,10 @@ public class FacturaController : ControllerBase
     public async Task<ActionResult<Factura>> PostFactura(Factura factura)
     {
         // Agrega una nueva factura
-        _context.Facturas.Add(factura);
-        await _context.SaveChangesAsync();
+    _context.Facturas.Add(factura);
+    await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetFacturaByNumeroFactura), new { numeroFactura = factura.NumeroFactura }, factura);
+    return CreatedAtAction(nameof(GetFacturaByNumeroFactura), new { numeroFactura = factura.NumeroFactura }, factura);
     }
 
     // GET: api/Facturas
