@@ -39,6 +39,8 @@ namespace Biodigestor.Model
         public Domicilio? Domicilio { get; set; }
 
          public DateOnly ProximoVencimiento => FechaVencimiento.AddDays(10);
+
+        public object? ClienteId { get; internal set; }
     }
 }
 
