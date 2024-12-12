@@ -32,21 +32,27 @@ public class ClienteController : ControllerBase
         if (userRole == "Cliente" && int.TryParse(dniClaim, out int dniParsed))
         {
             // Devolver un único cliente
-            var cliente = await GetClienteByDni(dniParsed);
-            return Ok(cliente);
+             var cliente = await _context.Clientes
+            .Where(c => c.DNI == dniParsed)
+            .FirstOrDefaultAsync();
+        if (cliente == null)
         }
-
+             return NotFound(new { message = "Cliente no encontrado." });
+          }
+        return Ok(cliente);
+    }
+        
         // Si el rol es Administrador, Manager o Tecnico, devuelve todos los clientes
         if (userRole == "Administracion" || userRole == "Manager" || userRole == "Tecnico")
         {
             // Devolver todos los clientes
-            var clientes = await GetAllClientes();
+            var clientes = await _context.Clientes.ToListAsync();
             return Ok(clientes);
         }
 
         // Si no se cumple ninguna de las condiciones anteriores, se retorna un error
         return Unauthorized(new { message = "No tiene permisos para acceder a esta información." });
-    }
+    
 
     // Método para obtener todos los clientes
     private async Task<IEnumerable<ClienteDto>> GetAllClientes()

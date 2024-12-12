@@ -1,7 +1,8 @@
 using Biodigestor.Data;
 using Biodigestor.Model;
 using Biodigestor.Models;
-using Microsoft.AspNetCore.Authorization;
+using M
+    icrosoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -19,16 +20,32 @@ public class FacturaController : ControllerBase
         _context = context;
     }
 
-    // POST: api/Facturas
+   // POST: api/Facturas
     [HttpPost]
     public async Task<ActionResult<Factura>> PostFactura(Factura factura)
     {
-        // Agrega una nueva factura
+    var dniClaim = User.FindFirst("DNI")?.Value;
+    if (!int.TryParse(dniClaim, out int dniAutenticado))
+    {
+        return Unauthorized("Usuario no autenticado.");
+    }
+
+    // Verifica si el cliente existe
+    var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.DNI == dniAutenticado);
+    if (cliente == null)
+    {
+        return NotFound("Cliente no encontrado.");
+    }
+
+    // Asigna el cliente autenticado a la factura
+    factura.ClienteId = cliente.Id;
+
     _context.Facturas.Add(factura);
     await _context.SaveChangesAsync();
 
     return CreatedAtAction(nameof(GetFacturaByNumeroFactura), new { numeroFactura = factura.NumeroFactura }, factura);
-    }
+}
+
 
     // GET: api/Facturas
     [HttpGet]
