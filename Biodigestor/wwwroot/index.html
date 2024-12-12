@@ -170,11 +170,12 @@
             }
 
             try {
-                const response = await fetch(`/api/verificacion/verificar-dni/${dni}`, {
-                    method: 'GET',
+                const response = await fetch('/Auth/verificarDNI', {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({ DNI: parseInt(dni) })
                 });
 
                 if (!response.ok) {
@@ -187,12 +188,12 @@
 
                 const data = await response.json();
 
-                verificacionMessage.textContent = data.mensaje;
-                verificacionMessage.style.color = data.existe ? 'green' : 'red';
-                document.getElementById('registerFormContainer').style.display = data.existe ? 'block' : 'none';
+                verificacionMessage.textContent = data.message;
+                verificacionMessage.style.color = data.success ? 'green' : 'red';
+                document.getElementById('registerFormContainer').style.display = data.success ? 'block' : 'none';
 
                 // Almacenar el DNI verificado
-                if (data.existe) {
+                if (data.success) {
                     dniVerificado = dni; // Guardar el DNI para la comparación en el registro
                 }
 

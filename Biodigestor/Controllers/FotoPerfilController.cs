@@ -84,5 +84,70 @@ namespace Biodigestor.Controllers
 
             return File(usuario.FotoPerfil, usuario.TipoContenidoFoto);
         }
+
+        [HttpGet("obtener-por-usuario/{username}")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> ObtenerFotoPerfilPorUsername(string username)
+        {
+            try
+            {
+                // Log de entrada
+                Console.WriteLine("==== Inicio de solicitud de foto ====");
+                Console.WriteLine($"Recibida solicitud para obtener foto de usuario: '{username}'");
+                Console.WriteLine($"Usuario actual: '{User.Identity?.Name}', Es autenticado: {User.Identity?.IsAuthenticated}");
+                Console.WriteLine($"Roles del usuario: {string.Join(", ", User.Claims.Where(c => c.Type == "role").Select(c => c.Value))}");
+
+                // Verificar autenticación y rol
+                if (!User.Identity?.IsAuthenticated ?? true)
+                {
+                    Console.WriteLine("Usuario no autenticado");
+                    return Unauthorized("Usuario no autenticado");
+                }
+
+                if (!User.IsInRole("Manager"))
+                {
+                    Console.WriteLine("Usuario no tiene rol Manager");
+                    return Forbid("Se requiere rol Manager");
+                }
+
+                // Buscar usuario
+                var usuario = await _context.UsuariosRegistrados
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+
+                if (usuario == null)
+                {
+                    Console.WriteLine($"Usuario no encontrado: '{username}'");
+                    return NotFound($"Usuario '{username}' no encontrado");
+                }
+
+                Console.WriteLine($"Usuario encontrado: '{usuario.Username}'");
+                Console.WriteLine($"Tiene foto: {usuario.FotoPerfil != null}");
+                Console.WriteLine($"Tipo contenido: '{usuario.TipoContenidoFoto}'");
+
+                if (usuario.FotoPerfil == null)
+                {
+                    Console.WriteLine($"Usuario {username} no tiene foto de perfil");
+                    return NotFound($"El usuario '{username}' no tiene foto de perfil");
+                }
+
+                if (string.IsNullOrEmpty(usuario.TipoContenidoFoto))
+                {
+                    Console.WriteLine($"Tipo de contenido no válido para usuario {username}");
+                    return BadRequest("Tipo de contenido de la foto no válido");
+                }
+
+                Console.WriteLine($"Enviando foto de perfil. Tamaño: {usuario.FotoPerfil.Length} bytes");
+                Console.WriteLine("==== Fin de solicitud de foto ====");
+                
+                return File(usuario.FotoPerfil, usuario.TipoContenidoFoto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener foto: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                return StatusCode(500, new { mensaje = $"Error interno del servidor: {ex.Message}" });
+            }
+        }
     }
 }
