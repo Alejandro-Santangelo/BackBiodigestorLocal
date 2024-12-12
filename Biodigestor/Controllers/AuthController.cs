@@ -75,32 +75,56 @@ namespace Biodigestor.Controllers
             return Ok(new { message = "Registro exitoso" });
         }
 
-        [HttpPost("verificarDNI")]
-        public IActionResult VerificarDNI([FromBody] VerificarDNIRequest request)
+       [HttpPost("verificarDNI")]
+public async Task<IActionResult> VerificarDNI([FromBody] VerificarDNIRequest request)
+{
+    try
+    {
+        if (request == null || request.DNI <= 0)
         {
-            if (request == null || request.DNI <= 0)
-            {
-                return BadRequest(new { message = "DNI inválido." });
-            }
-
-            var dni = request.DNI;
-
-            // Verifica si el DNI existe en la tabla Clientes
-            var cliente = _context.Clientes.FirstOrDefault(c => c.DNI == dni);
-            if (cliente != null)
-            {
-                return Ok(new { message = "Cliente encontrado. Proceda al registro." });
-            }
-
-            // Verifica si el DNI existe en la tabla Personal
-            var personal = _context.Personal.FirstOrDefault(p => p.DNI == dni);
-            if (personal != null)
-            {
-                return Ok(new { message = "Personal encontrado. Proceda al registro." });
-            }
-
-            return BadRequest(new { message = "DNI no encontrado." });
+            return BadRequest(new { success = false, message = "DNI inválido." });
         }
+
+        var dni = request.DNI;
+
+        // Verifica si el DNI existe en las tablas Clientes, Personal y UsuariosRegistrados
+        var existeEnClientes = await _context.Clientes.AnyAsync(c => c.DNI == dni);
+        var existeEnPersonal = await _context.Personal.AnyAsync(p => p.DNI == dni);
+        var existeEnUsuariosRegistrados = await _context.UsuariosRegistrados.AnyAsync(u => u.DNI == dni);
+
+        if (existeEnUsuariosRegistrados)
+        {
+            return Ok(new { 
+                success = false, 
+                message = "El DNI ingresado ya se encuentra registrado. Ingrese al login." 
+            });
+        }
+
+        if (existeEnClientes || existeEnPersonal)
+        {
+            return Ok(new { 
+                success = true,
+                message = existeEnClientes 
+                    ? "Cliente encontrado. Proceda al registro." 
+                    : "Personal encontrado. Proceda al registro."
+            });
+        }
+
+        return Ok(new { 
+            success = false,
+            message = "DNI no encontrado en nuestros registros. No está autorizado para registrarse."
+        });
+    }
+    catch (Exception)
+    {
+        // Log the error aquí si tienes un sistema de logs configurado
+        return StatusCode(500, new { 
+            success = false,
+            message = "Error interno del servidor al verificar el DNI."
+        });
+    }
+}
+
 
         [HttpPost("login")]
 public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
